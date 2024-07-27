@@ -8,6 +8,10 @@ pub fn main() void {
 
     std.debug.print("{s}'s power is {d}\n", .{ user.name, user.power });
     std.debug.print("{any}\n", .{@TypeOf(.{ .year = 2023, .month = 8 })});
+
+    for (0..10) |i| {
+        std.debug.print("{d}\n", .{i});
+    }
 }
 
 test "array" {
@@ -39,4 +43,38 @@ test "mem leak" {
     try list.append('s');
     try std.testing.expect(list.items.len == 1);
     return error.SkipZigTest;
+}
+//const TimestampType = enum {
+//    unix,
+//    datetime,
+//};
+
+//const Timestamp = union(TimestampType) {
+const Timestamp = union(enum) {
+    unix: i32,
+    datetime: DateTime,
+
+    const DateTime = struct {
+        year: u16,
+        month: u8,
+        day: u8,
+        hour: u8,
+        minute: u8,
+        second: u8,
+    };
+
+    fn seconds(self: Timestamp) u16 {
+        switch (self) {
+            .datetime => |dt| return dt.second,
+            .unix => |ts| {
+                const seconds_since_midnight: i32 = @rem(ts, 86400);
+                return @intCast(@rem(seconds_since_midnight, 60));
+            },
+        }
+    }
+};
+
+test "tagged union" {
+    const ts = Timestamp{ .unix = 1693278411 };
+    std.debug.print("{d}\n", .{ts.seconds()});
 }
