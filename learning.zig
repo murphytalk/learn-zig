@@ -78,3 +78,27 @@ test "tagged union" {
     const ts = Timestamp{ .unix = 1693278411 };
     std.debug.print("{d}\n", .{ts.seconds()});
 }
+
+test "optional" {
+    const v1: ?[]const u8 = null;
+    const v2: ?[]const u8 = "leto\n";
+
+    if (v1) |h| {
+        std.testing.expect(false);
+        std.debug.print("{s}", .{h});
+    } else {
+        std.debug.print("null {any}\n", .{@TypeOf(v1)});
+    }
+    if (v2) |h| {
+        // need to use try otherwise will have error
+        //  error: error union is ignored
+        // because expect might return error and needs to be handled
+        try std.testing.expect(true); //or just: catch unreachable;
+        std.debug.print("{s}", .{h});
+    } else {
+        std.testing.expect(false);
+    }
+
+    const v = v1 orelse "unknown";
+    try std.testing.expect(std.mem.eql(u8, v, "unknown"));
+}
